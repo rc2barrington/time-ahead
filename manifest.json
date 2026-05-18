@@ -1,0 +1,13 @@
+{
+  "name": "Time Ahead",
+  "short_name": "Time Ahead",
+  "description": "See what time it will be 8-12 hours from now",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

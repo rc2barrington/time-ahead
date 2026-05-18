@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#08060f">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Time Ahead</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --purple: #b57bee;
+      --purple-dim: #7a4fa3;
+      --purple-glow: rgba(181, 123, 238, 0.25);
+      --cyan: #7ee8f0;
+      --bg: #08060f;
+      --surface: #0e0b1a;
+      --border: rgba(181, 123, 238, 0.18);
+      --text: #e8dff5;
+      --muted: #5a4d72;
+    }
+
+    body {
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: env(safe-area-inset-top, 20px) 24px env(safe-area-inset-bottom, 20px);
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Subtle radial glow behind content */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(100, 40, 160, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    /* Header bar */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 40px;
+      opacity: 0.55;
+    }
+
+    .header-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--purple-dim));
+    }
+    .header-line.right {
+      background: linear-gradient(to left, transparent, var(--purple-dim));
+    }
+
+    .header-text {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--purple-dim);
+      text-transform: uppercase;
+    }
+
+    /* Now time */
+    .now-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .now-time {
+      font-family: 'Orbitron', monospace;
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+      color: var(--text);
+      text-shadow:
+        0 0 20px var(--purple-glow),
+        0 0 60px rgba(181, 123, 238, 0.1);
+    }
+
+    .now-ampm {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--purple-dim);
+      margin-left: 8px;
+      letter-spacing: 2px;
+    }
+
+    /* Card */
+    .card {
+      margin-top: 44px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 28px 24px 24px;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Corner accents */
+    .card::before, .card::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-color: var(--purple);
+      border-style: solid;
+    }
+    .card::before {
+      top: -1px; left: -1px;
+      border-width: 2px 0 0 2px;
+    }
+    .card::after {
+      bottom: -1px; right: -1px;
+      border-width: 0 2px 2px 0;
+    }
+
+    .card-inner {
+      position: relative;
+    }
+    .card-inner::before, .card-inner::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-color: var(--purple);
+      border-style: solid;
+    }
+    .card-inner::before {
+      top: -29px; right: -25px;
+      border-width: 2px 2px 0 0;
+    }
+    .card-inner::after {
+      bottom: -25px; left: -25px;
+      border-width: 0 0 2px 2px;
+    }
+
+    .card-label {
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--purple-dim);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .between-word {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .range-times {
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--purple);
+      letter-spacing: 1px;
+      text-shadow:
+        0 0 20px var(--purple-glow),
+        0 0 40px rgba(181, 123, 238, 0.15);
+      line-height: 1.3;
+    }
+
+    .range-sep {
+      color: var(--muted);
+      margin: 0 8px;
+      font-size: 20px;
+    }
+
+    .day-note {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      margin-top: 16px;
+      opacity: 0.7;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 36px;
+      opacity: 0.3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--purple-dim);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.4s; }
+    .dot:nth-child(3) { animation-delay: 0.8s; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <div class="header">
+      <div class="header-line"></div>
+      <div class="header-text">Time Ahead</div>
+      <div class="header-line right"></div>
+    </div>
+
+    <div class="now-label">Current Time</div>
+    <div class="now-time" id="now-time"></div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-label">8–12 Hours From Now</div>
+        <div class="between-word">Between</div>
+        <div class="range-times" id="range-times"></div>
+        <div class="day-note" id="day-note"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+
+  <script>
+    function fmt(date) {
+      let h = date.getHours();
+      const m = date.getMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return { str: `${h}:${String(m).padStart(2,'0')}`, ampm };
+    }
+
+    function dayLabel(now, future) {
+      const a = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const b = new Date(future.getFullYear(), future.getMonth(), future.getDate());
+      const diff = (b - a) / 86400000;
+      if (diff === 0) return null;
+      if (diff === 1) return 'Tomorrow';
+      return future.toLocaleDateString('en-US', { weekday: 'long' });
+    }
+
+    function update() {
+      const now = new Date();
+      const early = new Date(now.getTime() + 8  * 3600000);
+      const late  = new Date(now.getTime() + 12 * 3600000);
+
+      const nt = fmt(now);
+      document.getElementById('now-time').innerHTML =
+        `${nt.str}<span class="now-ampm">${nt.ampm}</span>`;
+
+      const et = fmt(early);
+      const lt = fmt(late);
+      document.getElementById('range-times').innerHTML =
+        `${et.str} <span style="font-size:13px;color:var(--muted);letter-spacing:1px">${et.ampm}</span>`+
+        `<span class="range-sep">—</span>`+
+        `${lt.str} <span style="font-size:13px;color:var(--muted);letter-spacing:1px">${lt.ampm}</span>`;
+
+      const earlyDay = dayLabel(now, early);
+      const lateDay  = dayLabel(now, late);
+      const note = document.getElementById('day-note');
+      if (!earlyDay && !lateDay) {
+        note.textContent = '';
+      } else if (earlyDay === lateDay || (!earlyDay && lateDay)) {
+        note.textContent = lateDay || earlyDay;
+      } else {
+        note.textContent = `${earlyDay || 'Today'} → ${lateDay}`;
+      }
+    }
+
+    update();
+    setInterval(update, 1000);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
