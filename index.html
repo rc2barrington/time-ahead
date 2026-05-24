@@ -548,8 +548,10 @@
 
     tabs.forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 
-    // Check URL mode
-    const mode = params.get('mode');
+    // Check URL mode - query param OR filename
+    const mode = params.get('mode')
+      || (location.pathname.includes('sleep') ? 'sleep' : null)
+      || (location.pathname.includes('ahead') ? 'ahead' : null);
     if (mode === 'sleep') switchTab('sleep');
     if (mode === 'ahead') switchTab('ahead');
 
